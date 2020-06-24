@@ -128,8 +128,8 @@ class ThreadedZMQSocketChannel(object):
         # We do the IOLoop callback process twice to ensure that the IOLoop
         # gets to perform at least one full poll.
         stop_time = time.time() + timeout
-        for i in range(2):
-            self._flushed = False
+        self._flushed = False
+        for _ in range(2):
             self.ioloop.add_callback(self._flush)
             while not self._flushed and time.time() < stop_time:
                 time.sleep(0.01)

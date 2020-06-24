@@ -111,7 +111,6 @@ class HBChannel(Thread):
                     # this may never actually happen
                     until_dead = self.time_to_dead - (time.time() - start_time)
                     until_dead = max(until_dead, 1e-3)
-                    pass
                 else:
                     raise
             except Exception:
@@ -150,7 +149,6 @@ class HBChannel(Thread):
                 remainder = self.time_to_dead - (time.time() - request_time)
                 if remainder > 0:
                     time.sleep(remainder)
-                continue
             else:
                 # nothing was received within the time limit, signal heart failure
                 self._beating = False
@@ -158,7 +156,8 @@ class HBChannel(Thread):
                 self.call_handlers(since_last_heartbeat)
                 # and close/reopen the socket, because the REQ/REP cycle has been broken
                 self._create_socket()
-                continue
+
+            continue
 
     def pause(self):
         """Pause the heartbeat."""
@@ -170,10 +169,7 @@ class HBChannel(Thread):
 
     def is_beating(self):
         """Is the heartbeat running and responsive (and not paused)."""
-        if self.is_alive() and not self._pause and self._beating:
-            return True
-        else:
-            return False
+        return bool(self.is_alive() and not self._pause and self._beating)
 
     def stop(self):
         """Stop the channel's event loop and join its thread."""

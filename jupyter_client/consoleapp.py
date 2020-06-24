@@ -189,22 +189,22 @@ class JupyterConsoleApp(ConnectionFileMixin):
     
     def init_ssh(self):
         """set up ssh tunnels, if needed."""
-        if not self.existing or (not self.sshserver and not self.sshkey):
+        if not (self.existing and (self.sshserver or self.sshkey)):
             return
         self.load_connection_file()
-        
+
         transport = self.transport
         ip = self.ip
-        
+
         if transport != 'tcp':
             self.log.error("Can only use ssh tunnels with TCP sockets, not %s", transport)
             sys.exit(-1)
-        
+
         if self.sshkey and not self.sshserver:
             # specifying just the key implies that we are connecting directly
             self.sshserver = ip
             ip = localhost()
-        
+
         # build connection dict for tunnels:
         info = dict(ip=ip,
                     shell_port=self.shell_port,
@@ -212,9 +212,9 @@ class JupyterConsoleApp(ConnectionFileMixin):
                     stdin_port=self.stdin_port,
                     hb_port=self.hb_port
         )
-        
+
         self.log.info("Forwarding connections to %s via %s"%(ip, self.sshserver))
-        
+
         # tunnels return a new set of ports, which will be on localhost:
         self.ip = localhost()
         try:
@@ -223,9 +223,9 @@ class JupyterConsoleApp(ConnectionFileMixin):
             # even catch KeyboardInterrupt
             self.log.error("Could not setup tunnels", exc_info=True)
             self.exit(1)
-        
+
         self.shell_port, self.iopub_port, self.stdin_port, self.hb_port = newports
-        
+
         cf = self.connection_file
         base,ext = os.path.splitext(cf)
         base = os.path.basename(base)

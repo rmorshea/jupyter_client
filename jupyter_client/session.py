@@ -133,9 +133,8 @@ def default_secure(cfg):
     a new random UUID.
     """
     warnings.warn("default_secure is deprecated", DeprecationWarning)
-    if 'Session' in cfg:
-        if 'key' in cfg.Session or 'keyfile' in cfg.Session:
-            return
+    if 'Session' in cfg and ('key' in cfg.Session or 'keyfile' in cfg.Session):
+        return
     # key/keyfile not specified, generate new UUID:
     cfg.Session.key = str_to_bytes(str(uuid.uuid4()))
 
@@ -654,7 +653,7 @@ class Session(Configurable):
         else:
             msg = self.msg(msg_or_type, content=content, parent=parent,
                            header=header, metadata=metadata)
-        if not os.getpid() == self.pid:
+        if os.getpid() != self.pid:
             get_logger().warn("WARNING: attempted to send message from fork\n%s",
                 msg
             )
@@ -664,7 +663,7 @@ class Session(Configurable):
             msg = adapt(msg, self.adapt_version)
         to_send = self.serialize(msg, ident)
         to_send.extend(buffers)
-        longest = max([ len(s) for s in to_send ])
+        longest = max(len(s) for s in to_send)
         copy = (longest < self.copy_threshold)
 
         if buffers and track and not copy:
@@ -772,11 +771,7 @@ class Session(Configurable):
             idx = msg_list.index(DELIM)
             return msg_list[:idx], msg_list[idx+1:]
         else:
-            failed = True
-            for idx,m in enumerate(msg_list):
-                if m.bytes == DELIM:
-                    failed = False
-                    break
+            failed = all(m.bytes != DELIM for idx,m in enumerate(msg_list))
             if failed:
                 raise ValueError("DELIM not in msg_list")
             idents, msg_list = msg_list[:idx], msg_list[idx+1:]
@@ -855,10 +850,7 @@ class Session(Configurable):
         message['msg_type'] = header['msg_type']
         message['parent_header'] = extract_dates(self.unpack(msg_list[2]))
         message['metadata'] = self.unpack(msg_list[3])
-        if content:
-            message['content'] = self.unpack(msg_list[4])
-        else:
-            message['content'] = msg_list[4]
+        message['content'] = self.unpack(msg_list[4]) if content else msg_list[4]
         buffers = [memoryview(b) for b in msg_list[5:]]
         if buffers and buffers[0].shape is None:
             # force copy to workaround pyzmq #646

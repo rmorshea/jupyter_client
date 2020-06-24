@@ -13,15 +13,13 @@ class TestKernelManager(TestCase):
 
     def _get_tcp_km(self):
         c = Config()
-        km = KernelManager(config=c)
-        return km
+        return KernelManager(config=c)
 
     def _get_ipc_km(self):
         c = Config()
         c.KernelManager.transport = 'ipc'
         c.KernelManager.ip = 'test'
-        km = KernelManager(config=c)
-        return km
+        return KernelManager(config=c)
 
     def _run_lifecycle(self, km):
         km.start_kernel(stdout=PIPE, stderr=PIPE)

@@ -119,9 +119,8 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
         proc = Popen(cmd, **kwargs)
 
     # Clean up pipes created to work around Popen bug.
-    if redirect_in:
-        if stdin is None:
-            proc.stdin.close()
+    if redirect_in and stdin is None:
+        proc.stdin.close()
 
     return proc
 

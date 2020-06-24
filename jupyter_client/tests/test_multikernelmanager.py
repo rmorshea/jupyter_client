@@ -15,15 +15,13 @@ class TestKernelManager(TestCase):
 
     def _get_tcp_km(self):
         c = Config()
-        km = MultiKernelManager(config=c)
-        return km
+        return MultiKernelManager(config=c)
 
     def _get_ipc_km(self):
         c = Config()
         c.KernelManager.transport = 'ipc'
         c.KernelManager.ip = 'test'
-        km = MultiKernelManager(config=c)
-        return km
+        return MultiKernelManager(config=c)
 
     def _run_lifecycle(self, km):
         kid = km.start_kernel(stdout=PIPE, stderr=PIPE)
@@ -38,7 +36,7 @@ class TestKernelManager(TestCase):
         k = km.get_kernel(kid)
         self.assertTrue(isinstance(k, KernelManager))
         km.shutdown_kernel(kid, now=True)
-        self.assertTrue(not kid in km)
+        self.assertTrue(kid not in km)
 
     def _run_cinfo(self, km, transport, ip):
         kid = km.start_kernel(stdout=PIPE, stderr=PIPE)

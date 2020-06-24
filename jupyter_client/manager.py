@@ -253,7 +253,7 @@ class KernelManager(ConnectionFileMixin):
         This does not send shutdown requests - use :meth:`request_shutdown`
         first.
         """
-        for i in range(int(waittime/pollinterval)):
+        for _ in range(int(waittime/pollinterval)):
             if self.is_alive():
                 time.sleep(pollinterval)
             else:
@@ -344,30 +344,29 @@ class KernelManager(ConnectionFileMixin):
 
         This is a private method, callers should use shutdown_kernel(now=True).
         """
-        if self.has_kernel:
+        if not self.has_kernel:
 
-            # Signal the kernel to terminate (sends SIGKILL on Unix and calls
-            # TerminateProcess() on Win32).
-            try:
-                self.kernel.kill()
-            except OSError as e:
-                # In Windows, we will get an Access Denied error if the process
-                # has already terminated. Ignore it.
-                if sys.platform == 'win32':
-                    if e.winerror != 5:
-                        raise
-                # On Unix, we may get an ESRCH error if the process has already
-                # terminated. Ignore it.
-                else:
-                    from errno import ESRCH
-                    if e.errno != ESRCH:
-                        raise
-
-            # Block until the kernel terminates.
-            self.kernel.wait()
-            self.kernel = None
-        else:
             raise RuntimeError("Cannot kill kernel. No kernel is running!")
+        # Signal the kernel to terminate (sends SIGKILL on Unix and calls
+        # TerminateProcess() on Win32).
+        try:
+            self.kernel.kill()
+        except OSError as e:
+            # In Windows, we will get an Access Denied error if the process
+            # has already terminated. Ignore it.
+            if sys.platform == 'win32':
+                if e.winerror != 5:
+                    raise
+            # On Unix, we may get an ESRCH error if the process has already
+            # terminated. Ignore it.
+            else:
+                from errno import ESRCH
+                if e.errno != ESRCH:
+                    raise
+
+        # Block until the kernel terminates.
+        self.kernel.wait()
+        self.kernel = None
 
     def interrupt_kernel(self):
         """Interrupts the kernel by sending it a signal.
